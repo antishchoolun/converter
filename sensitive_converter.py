@@ -1,6 +1,10 @@
-import instaloader
-import subprocess
+# app.py
+
 import os
+import subprocess
+from flask import Flask, jsonify, request
+
+app = Flask(__name__)
 
 def download_instagram_image(profile_id):
     try:
@@ -40,7 +44,21 @@ def download_instagram_image(profile_id):
         print(f"An error occurred: {str(e)}")
         return None
 
-# Example usage
-if __name__ == "__main__":
-    profile_id = 'C8Ad5VAJWCQ'  # Replace with your desired profile ID
-    downloaded_image_path = download_instagram_image(profile_id)
+# Endpoint to trigger image download
+@app.route('/download-image', methods=['POST'])
+def trigger_download():
+    data = request.get_json()
+    profile_id = data.get('profile_id')
+
+    if not profile_id:
+        return jsonify({'error': 'Profile ID is required'}), 400
+
+    image_path = download_instagram_image(profile_id)
+
+    if image_path:
+        return jsonify({'image_path': image_path}), 200
+    else:
+        return jsonify({'error': 'Failed to download image'}), 500
+
+if __name__ == '__main__':
+    app.run(debug=True)
